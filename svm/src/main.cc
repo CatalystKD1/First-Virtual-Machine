@@ -76,6 +76,7 @@ void Stack::pushInternal(int32_t value) {
 // Effects: Removes elements from data and decrements sp
 int32_t Stack::popInternal() {
     if(sp == -1) {
+        cerr << pc << endl;
         throw std::runtime_error("Stack underflow");
     }
     int32_t value = memory[sp];
@@ -244,6 +245,9 @@ void eval(const Instruction &instr) {
         }
         case PREG: {
             int32_t reg = instr.operands[0]; // gets reg
+            #if DEBUG
+            cout << "Printing from register " << reg << endl;
+            #endif
             cout << registers[reg] << endl;
             break;
         }
@@ -283,10 +287,10 @@ void eval(const Instruction &instr) {
             int32_t reg1 = instr.operands[0];
             int32_t reg2 = instr.operands[1];
 
-            registers[reg2] = registers[reg1];
+            registers[reg1] = registers[reg2];
 
             #if DEBUG
-            cout << "Moved " << registers[reg1] << " from register " << reg1 << " to register " << reg2 << endl;
+            cout << "Moved " << registers[reg2] << " from register " << reg2 << " to register " << reg1 << endl;
             #endif
 
             break;
@@ -294,6 +298,9 @@ void eval(const Instruction &instr) {
         case BR: { // Format BR, offset
             int32_t offset = instr.operands[0];
             uint32_t new_pc = pc + offset;
+            #if DEBUG
+            cout << "Branching to " << new_pc << endl;
+            #endif
             if (new_pc > instruction_count) {
                 throw std::runtime_error("Branch outside of PC scope");
             } else {
@@ -306,7 +313,7 @@ void eval(const Instruction &instr) {
             int32_t reg2 = instr.operands[1];
 
             if(registers[reg1] == registers[reg2]) {
-                int32_t offset = instr.operands[0];
+                int32_t offset = instr.operands[2];
                 uint32_t new_pc = pc + offset;
                 if (new_pc > instruction_count) {
                     throw std::runtime_error("Branch outside of PC scope");
