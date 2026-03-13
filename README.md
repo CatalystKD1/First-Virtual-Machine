@@ -107,6 +107,11 @@ Then you can build the Virtual Machine using the Makefile
 make
 ```
 
+If you want to have debug turned on, please go change this flag to be 1
+```bash
+DEBUG_FLAGS = -DDEBUG=0 ---> DEBUG_FLAGS = -DDEBUG=1
+```
+
 # Running the VM
 
 Once compiled, you can run the VM with an input program file. There is a directory with example programs that you can copy.
