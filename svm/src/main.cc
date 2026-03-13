@@ -13,29 +13,29 @@ using namespace std;
             OBJECTS
 =============================*/
 class Stack {
-    int32_t sp; // stack pointer
-    unordered_map<int32_t, int32_t> memory;
+    int8_t sp; // stack pointer
+    unordered_map<int8_t, int8_t> memory;
 
-    void pushInternal(int32_t value);
-    int32_t popInternal();
+    void pushInternal(int8_t value);
+    int8_t popInternal();
 
     // New functions
-    int32_t loadInternal(int32_t mem);
-    void storeInternal(int32_t value, int32_t mem);
+    int8_t loadInternal(int8_t mem);
+    void storeInternal(int8_t value, int8_t mem);
 
-    void checkAddress(int32_t addr);
-    int32_t catInternal(int32_t mem);
+    void checkAddress(int8_t addr);
+    int8_t catInternal(int8_t mem);
 
     public:
         Stack();
-        void push(int32_t value);
-        int32_t pop();
-        int32_t peek();
+        void push(int8_t value);
+        int8_t pop();
+        int8_t peek();
         bool isEmpty();
 
-        int32_t load(int32_t mem);
-        void store(int32_t value, int32_t mem);
-        int32_t cat(int32_t mem);
+        int8_t load(int8_t mem);
+        void store(int8_t value, int8_t mem);
+        int8_t cat(int8_t mem);
 };
 
 
@@ -44,19 +44,19 @@ class Stack {
         GLOBAL VARIABLES
 =============================*/
 
-const int32_t MEMORY_LIMIT = 1024;
+const int8_t MEMORY_LIMIT = 255; // 8-bit limit
 
 // Program Counter
-uint32_t pc = 0;
+uint8_t pc = 0;
 
 int pop_full = false; //there is or is not somehting at pop_reg
-int32_t pop_reg = 0;
+int8_t pop_reg = 0;
 
 bool running = true;
 
 Stack stack;
 
-int32_t registers[NUM_OF_REGISTERS];
+int8_t registers[NUM_OF_REGISTERS];
 
 
 /*=============================
@@ -68,31 +68,30 @@ Stack::Stack(): sp(-1), memory() {}
         Private Methods
 =============================*/
 // Effect: Adds elements to data and increments sp
-void Stack::pushInternal(int32_t value) {
+void Stack::pushInternal(int8_t value) {
     sp++; // increment stack pointer
     memory[sp] = value;
 }
 
 // Effects: Removes elements from data and decrements sp
-int32_t Stack::popInternal() {
+int8_t Stack::popInternal() {
     if(sp == -1) {
-        cerr << pc << endl;
         throw std::runtime_error("Stack underflow");
     }
-    int32_t value = memory[sp];
+    int8_t value = memory[sp];
     memory.erase(sp);
     sp--; // decreases sp to "remove" top of stack
     return value;
 }
 
-void Stack::checkAddress(int32_t addr) {
+void Stack::checkAddress(int8_t addr) {
     if (addr < 0 || addr > MEMORY_LIMIT) {
         throw runtime_error("Memory access out of bounds");
     }
 }
 
 // Effects: Changes value of register based on memory
-int32_t Stack:: loadInternal(int32_t mem) {
+int8_t Stack:: loadInternal(int8_t mem) {
     checkAddress(mem);
 
     if(memory.find(mem) == memory.end()) {
@@ -103,12 +102,12 @@ int32_t Stack:: loadInternal(int32_t mem) {
 }
 
 // Effects: Changes memory with the value stored at register reg
-void Stack::storeInternal(int32_t value, int32_t mem) {
+void Stack::storeInternal(int8_t value, int8_t mem) {
     checkAddress(mem);
     memory[mem] = value;
 }
 
-int32_t Stack::catInternal(int32_t mem) {
+int8_t Stack::catInternal(int8_t mem) {
     return memory[mem];
 }
 
@@ -116,16 +115,16 @@ int32_t Stack::catInternal(int32_t mem) {
         Public Methods
 =============================*/
 
-void Stack::push(int32_t value) {
+void Stack::push(int8_t value) {
     pushInternal(value);
 }
 
 // Effects: Calls the popInternal function and prints to stdout
-int32_t Stack::pop() {
+int8_t Stack::pop() {
     return popInternal();
 }
 
-int32_t Stack::peek() {
+int8_t Stack::peek() {
     if (sp == -1) {
         throw std::runtime_error("Stack empty");
     }
@@ -137,15 +136,15 @@ bool Stack::isEmpty() {
     return sp == -1;
 }
 
-int32_t Stack::load(int32_t mem) {
+int8_t Stack::load(int8_t mem) {
     return loadInternal(mem);
 }
 
-void Stack::store(int32_t value, int32_t mem) {
+void Stack::store(int8_t value, int8_t mem) {
     storeInternal(value, mem);
 }
 
-int32_t Stack::cat(int32_t mem) {
+int8_t Stack::cat(int8_t mem) {
     return catInternal(mem);
 }
 
@@ -153,7 +152,7 @@ int32_t Stack::cat(int32_t mem) {
         BASIC PROGRAM
 =============================*/
 vector<Instruction> program;
-uint32_t instruction_count;
+uint8_t instruction_count;
 
 /*=============================
         HELPER FUNCTIONS
@@ -183,7 +182,7 @@ void eval(const Instruction &instr) {
             break;
         }
         case POP: {
-            int32_t value = stack.pop();
+            int8_t value = stack.pop();
             #if DEBUG
             cout << value << endl;
             pop_reg = value;
@@ -195,10 +194,10 @@ void eval(const Instruction &instr) {
         }
         case ADD: {
             // first pop the stack and store is as a
-            int32_t a = stack.pop();
+            int8_t a = stack.pop();
 
             // then we pop the top of the stack and store it as b
-            int32_t b = stack.pop();
+            int8_t b = stack.pop();
 
             // we then add the result and push it to the stack
             stack.push(b + a);
@@ -225,8 +224,8 @@ void eval(const Instruction &instr) {
             break;
         }
         case LDR: { // format LDR, reg, mem
-            int32_t reg = instr.operands[0]; // gets reg
-            int32_t mem = instr.operands[1]; // gets mem
+            int8_t reg = instr.operands[0]; // gets reg
+            int8_t mem = instr.operands[1]; // gets mem
             registers[reg] = stack.load(mem);
             #if DEBUG
             cout << "Loaded value from memory address " << mem << " into register " << reg << endl;
@@ -234,8 +233,8 @@ void eval(const Instruction &instr) {
             break;
         }
         case STR: {
-            int32_t reg = instr.operands[0]; // gets reg
-            int32_t mem = instr.operands[1]; // gets mem
+            int8_t reg = instr.operands[0]; // gets reg
+            int8_t mem = instr.operands[1]; // gets mem
             stack.store(registers[reg], mem);
 
             #if DEBUG
@@ -244,7 +243,7 @@ void eval(const Instruction &instr) {
             break;
         }
         case PREG: {
-            int32_t reg = instr.operands[0]; // gets reg
+            int8_t reg = instr.operands[0]; // gets reg
             #if DEBUG
             cout << "Printing from register " << reg << endl;
             #endif
@@ -252,7 +251,7 @@ void eval(const Instruction &instr) {
             break;
         }
         case CAT: { // Format CAT, mem
-            int32_t mem = instr.operands[0]; // gets mem
+            int8_t mem = instr.operands[0]; // gets mem
             cout << stack.cat(mem) << endl;
             break;
         }
@@ -263,7 +262,7 @@ void eval(const Instruction &instr) {
         case MTR: {
             if (pop_full) {
                 pop_full = false;
-                int32_t reg = instr.operands[0]; // gets reg
+                int8_t reg = instr.operands[0]; // gets reg
                 registers[reg] = pop_reg;
             } else {
                 throw std::runtime_error("Pop Register is empty");
@@ -274,7 +273,7 @@ void eval(const Instruction &instr) {
             break;
         }
         case RPSH: { // format RPSH, reg
-            int32_t reg = instr.operands[0]; // gets reg
+            int8_t reg = instr.operands[0]; // gets reg
             stack.push(registers[reg]);
 
             #if DEBUG
@@ -284,8 +283,8 @@ void eval(const Instruction &instr) {
             break;
         }
         case MOV: { // format MOV reg, reg
-            int32_t reg1 = instr.operands[0];
-            int32_t reg2 = instr.operands[1];
+            int8_t reg1 = instr.operands[0];
+            int8_t reg2 = instr.operands[1];
 
             registers[reg1] = registers[reg2];
 
@@ -296,8 +295,8 @@ void eval(const Instruction &instr) {
             break;
         }
         case BR: { // Format BR, offset
-            int32_t offset = instr.operands[0];
-            uint32_t new_pc = pc + offset;
+            int8_t offset = instr.operands[0];
+            uint8_t new_pc = pc + offset;
             #if DEBUG
             cout << "Branching to " << new_pc << endl;
             #endif
@@ -309,12 +308,12 @@ void eval(const Instruction &instr) {
             break;
         }
         case CBE: {
-            int32_t reg1 = instr.operands[0];
-            int32_t reg2 = instr.operands[1];
+            int8_t reg1 = instr.operands[0];
+            int8_t reg2 = instr.operands[1];
 
             if(registers[reg1] == registers[reg2]) {
-                int32_t offset = instr.operands[2];
-                uint32_t new_pc = pc + offset;
+                int8_t offset = instr.operands[2];
+                uint8_t new_pc = pc + offset;
                 if (new_pc > instruction_count) {
                     throw std::runtime_error("Branch outside of PC scope");
                 } else {

@@ -12,6 +12,11 @@ The goal of this project is to explore low-level computer architecture concepts 
 
 Programs written for this VM consist of a sequence of instructions that manipulate registers, memory, and the stack.
 
+# Virtual Machine Architecture
+
+There are 2048-bits of memory or 512 bytes of memory. Since memory is 8-bits or 2 bytes, that means there are 256 total locations in memory.
+Registers also store 8-bits or 2 bytes of memory.
+
 ---
 
 # Features
@@ -38,7 +43,8 @@ A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P
 PSH int             ; pushes int to the stack
 RPSH reg            ; pushes content of register reg to the stack
 ADD                 ; pop two values on top of the stack, add them and pushes to stack
-POP                 ; pops the value on the stack, puts this value into a special purpose register, will also print it for debugging
+POP                 ; pops the value on the stack, puts this value into a special purpose register, will also print 
+                    it for debugging
 MTR reg             ; If there is a value in the special purpose register for popping, move it into register reg
 SET reg int         ; sets register reg to int
 LDR reg int         ; load a value from memory address into a register
@@ -47,8 +53,8 @@ CAT int             ; prints the value stored at memory address int
 PREG reg            ; prints the value stored at reg
 PEEK                ; prints the value at the top of the stack
 MOV reg1 reg2       ; sets reg2 to be the value stored at reg1
-BR int              ; unconditional branch, sets pc to pc = pc + int + 1
-CBE reg1 reg 2 int  ; conditional branch equals, if true, set pc to pc = pc + int + 1
+BR int              ; unconditional branch, sets pc to pc = pc + int + 1 (offset is signed)
+CBE reg1 reg 2 int  ; conditional branch equals, if true, set pc to pc = pc + int + 1 (offset is signed)
 HLT                 ; stop the program
 ```
 
@@ -65,12 +71,6 @@ DIV                 ; computes second element in stack / tops of stack
 DIVR reg1 reg2 reg3 ; computes reg1 = reg2 / reg3
 READ                ; reads an integer from stdin
 ```
-
-## Features
-
-- Add a **compiler flag** to convert printed numeric values into ASCII characters (allowing string output)
-- Support **labels** for branching instead of manual offsets
-- Add **jump instructions and register-based jumps** to better mimic traditional assembly languages
 
 ## Planned Features
 
@@ -112,6 +112,8 @@ If you want to have debug turned on, please go change this flag to be 1
 DEBUG_FLAGS = -DDEBUG=0 ---> DEBUG_FLAGS = -DDEBUG=1
 ```
 
+---
+
 # Running the VM
 
 Once compiled, you can run the VM with an input program file. There is a directory with example programs that you can copy.
@@ -119,6 +121,8 @@ One example is the sum.asm program, which will compute the sum from 0 to Reg A.
 ```
 ./svm sum.asm
 ```
+
+---
 
 # Author
 
