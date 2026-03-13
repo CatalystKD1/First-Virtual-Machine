@@ -86,13 +86,13 @@ READ                ; reads an integer from stdin
 To build and run this project you will need:
 
 - **g++** (C++17 or later recommended)
-- **make**
+- **Makefile**
 - A Unix-like environment (Linux/macOS recommended, however I am using a WSL environment)
 
-Typical installation commands:
+For a Linux system, the following command will install g++ as well as Makefiles dependencies to your system
 
 ```bash
-sudo apt install g++ make
+sudo apt install build-essential
 ```
 
 # Building the Project
