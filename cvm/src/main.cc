@@ -66,7 +66,7 @@ typedef enum {
 const int32_t MEMORY_LIMIT = 1024;
 
 // Program Counter
-int pc = 0;
+uint32_t pc = 0;
 
 int pop_full = false; //there is or is not somehting at pop_reg
 int32_t pop_reg = 0;
@@ -171,29 +171,35 @@ int32_t Stack::cat(int32_t mem) {
         BASIC PROGRAM
 =============================*/
 const int32_t program[] = {
-    PSH, 5,
-    PSH, 6,
+    SET, A, 5,
+    RPSH, A,
     PEEK,
-    SET, A, 4,
-    PREG, A,
+    POP,
+    PTR, B,
+    PREG, B,
     HLT
 };
+
+uint32_t instruction_count = size(program);
 
 /*=============================
         HELPER FUNCTIONS
 =============================*/
 
 // fetches the current instruction from PC
-int32_t fetch() {
+uint32_t fetch() {
     return program[pc];
 }
 
 // detect what instruction is being passed from PC
 // Effect: Can modify running to be false (stop the program), write to stdout
-void eval(int instr) {
+void eval(uint32_t instr) {
     switch (instr) {
         case HLT: {
             running = false;
+            #if DEBUG
+            cout << "Program has halted" << endl;
+            #endif
             break;
         } 
         case PSH: {
@@ -224,6 +230,10 @@ void eval(int instr) {
 
             // we then add the result and push it to the stack
             stack.push(b + a);
+
+            #if DEBUG
+            cout << "added " << a << "+" << b << " and pushed it to the stack" << endl;
+            #endif
             
             break;
         }
@@ -249,6 +259,9 @@ void eval(int instr) {
             pc++;
             int32_t mem = program[pc]; // gets mem from pc
             registers[reg] = stack.load(mem);
+            #if DEBUG
+            cout << "Loaded value from memory address " << mem << " into register " << reg << endl;
+            #endif
             break;
         }
         case STR: {
@@ -257,6 +270,10 @@ void eval(int instr) {
             pc++;
             int32_t mem = program[pc]; // gets mem from pc
             stack.store(registers[reg], mem);
+
+            #if DEBUG
+            cout << "Stored value from register " << reg << " into memory address " << mem << endl;
+            #endif
             break;
         }
         case PREG: {
@@ -276,16 +293,26 @@ void eval(int instr) {
             break;
         }
         case PTR: {
-            if (!pop_full) {
+            if (pop_full) {
                 pop_full = false;
                 pc++;
-                registers[pc] = pop_reg;
+                registers[program[pc]] = pop_reg;
             } else {
                 throw std::runtime_error("Pop Register is empty");
             }
+            #if DEBUG
+            cout << "Moved value from Pop Register into a general purpose register" << endl;
+            #endif
             break;
         }
-        case RPSH: {
+        case RPSH: { // format RPSH, reg
+            pc++;
+            stack.push(registers[program[pc]]);
+
+            #if DEBUG
+            cout << "Pushed " << registers[program[pc]] << "to the stack from register " << program[pc] << endl;
+            #endif
+            
             break;
         }
     }
