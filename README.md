@@ -1,5 +1,5 @@
 # General purpose Registers
-A, B, C, D, E and F
+A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P
 
 # Commands
 ```
@@ -12,13 +12,6 @@ HLT         ; stop the program
 ```
 
 # Extra Idea
-### Create a new branch
-
-Implement a MOV A, B to move the content from register A into register B
-
-Implement branching (use PC to increment the program)
-
-Read instructions from the stdin instead of a program array (so people can make programs)
 
 
 # Instruction cycle
