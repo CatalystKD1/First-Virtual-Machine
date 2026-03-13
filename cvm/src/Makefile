@@ -1,7 +1,11 @@
-SRC_FILES = main.cc
+CC = g++
 CC_FLAGS = -Wall -Wextra -g -std=c++23
 DEBUG_FLAGS = -DDEBUG=1
-CC = g++
+
+SRC = main.cc assembler.cc
 
 all:
-	${CC} ${SRC_FILES} ${CC_FLAGS} ${DEBUG_FLAGS} -o cvm
+	$(CC) $(SRC) $(CC_FLAGS) $(DEBUG_FLAGS) -o cvm
+
+clean:
+	rm -f cvm

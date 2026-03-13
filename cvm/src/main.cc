@@ -3,8 +3,12 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <cstdint>
+#include <fstream>
+#include "isa.h"
+#include "assembler.h"
 
 using namespace std;
+
 /*=============================
             OBJECTS
 =============================*/
@@ -34,32 +38,6 @@ class Stack {
         int32_t cat(int32_t mem);
 };
 
-/*=============================
-        ENUM DEFINITIONS
-=============================*/
-
-typedef enum {
-    PSH,
-    RPSH, // push reg value to stack
-    ADD,
-    POP,
-    PTR, // stands for Pop To Reg takes what is in pop_reg and puts it into a register
-    SET,
-    LDR,
-    STR,
-    CAT, // reads from memory
-    PREG, // Peek at register
-    PEEK,
-    MOV,
-    BR,
-    CBE, // conditional branch equal
-    HLT
-} InstructionSet;
-
-typedef enum {
-    A, B, C, D, E, F,
-    NUM_OF_REGISTERS
-} Registers;
 
 
 /*=============================
@@ -173,31 +151,22 @@ int32_t Stack::cat(int32_t mem) {
 /*=============================
         BASIC PROGRAM
 =============================*/
-const int32_t program[] = {
-    SET, A, 5,
-    RPSH, A,
-    PEEK,
-    POP,
-    PTR, B,
-    PREG, B,
-    HLT
-};
-
-uint32_t instruction_count = size(program);
+vector<Instruction> program;
+uint32_t instruction_count;
 
 /*=============================
         HELPER FUNCTIONS
 =============================*/
 
 // fetches the current instruction from PC
-uint32_t fetch() {
+Instruction fetch() {
     return program[pc];
 }
 
 // detect what instruction is being passed from PC
 // Effect: Can modify running to be false (stop the program), write to stdout
-void eval(uint32_t instr) {
-    switch (instr) {
+void eval(const Instruction &instr) {
+    switch (instr.opcode) {
         case HLT: {
             running = false;
             #if DEBUG
@@ -206,10 +175,9 @@ void eval(uint32_t instr) {
             break;
         } 
         case PSH: {
-            pc++;
-            stack.push(program[pc]);
+            stack.push(instr.operands[0]); // get value
             #if DEBUG
-            cout << program[pc] << " was pushed ot the stack." << endl;
+            cout << instr.operands[1] << " was pushed ot the stack." << endl;
             #endif
             break;
         }
@@ -243,12 +211,11 @@ void eval(uint32_t instr) {
         // need to make sure users follow the strict way to implement an instruction
         // Make error handling code that make sure set is followed by a register, and then a value
         case SET: {
-            pc++;
             // gets register from the program
-            int32_t reg = program[pc];
-            pc++;
-            int32_t value = program[pc];
+            int reg = instr.operands[0];
+            int value = instr.operands[1];
             registers[reg] = value;
+            break;
 
             #if DEBUG
             cout << "Register " << reg << " has value " << value << endl;
@@ -257,10 +224,8 @@ void eval(uint32_t instr) {
             break;
         }
         case LDR: { // format LDR, reg, mem
-            pc++;
-            int32_t reg = program[pc]; // gets reg from pc
-            pc++;
-            int32_t mem = program[pc]; // gets mem from pc
+            int32_t reg = instr.operands[0]; // gets reg
+            int32_t mem = instr.operands[1]; // gets mem
             registers[reg] = stack.load(mem);
             #if DEBUG
             cout << "Loaded value from memory address " << mem << " into register " << reg << endl;
@@ -268,10 +233,8 @@ void eval(uint32_t instr) {
             break;
         }
         case STR: {
-            pc++;
-            int32_t reg = program[pc]; // gets reg from pc
-            pc++;
-            int32_t mem = program[pc]; // gets mem from pc
+            int32_t reg = instr.operands[0]; // gets reg
+            int32_t mem = instr.operands[1]; // gets mem
             stack.store(registers[reg], mem);
 
             #if DEBUG
@@ -280,14 +243,12 @@ void eval(uint32_t instr) {
             break;
         }
         case PREG: {
-            pc++;
-            int reg = program[pc];
+            int32_t reg = instr.operands[0]; // gets reg
             cout << registers[reg] << endl;
             break;
         }
         case CAT: { // Format CAT, mem
-            pc++;
-            int mem = program[pc];
+            int32_t mem = instr.operands[0]; // gets mem
             cout << stack.cat(mem) << endl;
             break;
         }
@@ -295,11 +256,11 @@ void eval(uint32_t instr) {
             cout << stack.peek() << endl;
             break;
         }
-        case PTR: {
+        case MTR: {
             if (pop_full) {
                 pop_full = false;
-                pc++;
-                registers[program[pc]] = pop_reg;
+                int32_t reg = instr.operands[0]; // gets reg
+                registers[reg] = pop_reg;
             } else {
                 throw std::runtime_error("Pop Register is empty");
             }
@@ -309,18 +270,29 @@ void eval(uint32_t instr) {
             break;
         }
         case RPSH: { // format RPSH, reg
-            pc++;
-            stack.push(registers[program[pc]]);
+            int32_t reg = instr.operands[0]; // gets reg
+            stack.push(registers[reg]);
 
             #if DEBUG
-            cout << "Pushed " << registers[program[pc]] << "to the stack from register " << program[pc] << endl;
+            cout << "Pushed " << registers[reg] << " to the stack from register " << reg << endl;
             #endif
             
             break;
         }
+        case MOV: { // format MOV reg, reg
+            int32_t reg1 = instr.operands[0];
+            int32_t reg2 = instr.operands[1];
+
+            registers[reg2] = registers[reg1];
+
+            #if DEBUG
+            cout << "Moved " << registers[reg1] << " from register " << reg1 << " to register " << reg2 << endl;
+            #endif
+
+            break;
+        }
         case BR: { // Format BR, offset
-            pc++;
-            int32_t offset = program[pc];
+            int32_t offset = instr.operands[0];
             uint32_t new_pc = pc + offset;
             if (new_pc > instruction_count) {
                 throw std::runtime_error("Branch outside of PC scope");
@@ -329,11 +301,48 @@ void eval(uint32_t instr) {
             }
             break;
         }
+        case CBE: {
+            int32_t reg1 = instr.operands[0];
+            int32_t reg2 = instr.operands[1];
+
+            if(registers[reg1] == registers[reg2]) {
+                int32_t offset = instr.operands[0];
+                uint32_t new_pc = pc + offset;
+                if (new_pc > instruction_count) {
+                    throw std::runtime_error("Branch outside of PC scope");
+                } else {
+                    pc = new_pc;
+                    #if DEBUG
+                    cout << "Branch taken" << endl;
+                    #endif
+                }
+            } else {
+                #if DEBUG
+                cout << "Branch not taken" << endl;
+                #endif
+            }
+            break;
+        }
     }
 }
 
-int main() {
-    // Effects: Modifies PC
+int main(int argc, char* argv[]) {
+
+    if (argc < 2) {
+        cerr << "Usage: cvm <program.asm>" << endl;
+        return 1;
+    }
+
+    ifstream file(argv[1]);
+
+    if (!file) {
+        cerr << "Failed to open file." << endl;
+        return 1;
+    }
+
+    program = assembleProgram(file);
+    instruction_count = program.size();
+
     while (running) {
         eval(fetch());
         pc++;
