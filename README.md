@@ -12,6 +12,7 @@ HLT         ; stop the program
 ```
 
 # Extra Idea
+### Create a new branch
 Implement a STR to store value of register to the stack
 
 Implement LD to load value from stack to a register
@@ -19,6 +20,8 @@ Implement LD to load value from stack to a register
 Implement a MOV A, B to move the content from register A into register B
 
 Implement branching (use PC to increment the program)
+
+Read instructions from the stdin instead of a program array (so people can make programs)
 
 
 # Instruction cycle

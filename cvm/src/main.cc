@@ -15,6 +15,9 @@ class Stack {
     int popInternal();
 
     // New functions
+    fgfg
+    int loadInternal(int mem);
+    int storeInternal(int value, int mem);
     public:
         Stack();
         void push(int value);
