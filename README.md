@@ -47,8 +47,8 @@ CAT int             ; prints the value stored at memory address int
 PREG reg            ; prints the value stored at reg
 PEEK                ; prints the value at the top of the stack
 MOV reg1 reg2       ; sets reg2 to be the value stored at reg1
-BR int              ; unconditional branch, sets pc to pc = pc + int
-CBE reg1 reg 2 int  ; conditional branch equals, if true, set pc to pc = pc + int
+BR int              ; unconditional branch, sets pc to pc = pc + int + 1
+CBE reg1 reg 2 int  ; conditional branch equals, if true, set pc to pc = pc + int + 1
 HLT                 ; stop the program
 ```
 
