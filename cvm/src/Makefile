@@ -1,6 +1,6 @@
 SRC_FILES = main.cc
 CC_FLAGS = -Wall -Wextra -g -std=c++23
-DEBUG_FLAGS = -DDEBUG=0
+DEBUG_FLAGS = -DDEBUG=1
 CC = g++
 
 all:
