@@ -117,7 +117,7 @@ One example is the sum.asm program, which will compute the sum from 0 to Reg A.
 
 # Author
 
-** Jordan McCrank**
+**Jordan McCrank**
 Computer Science Student interested in
 - Software Development
 - Systems programming
